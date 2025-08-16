@@ -1,0 +1,7 @@
+SELECT TOP (1000) [VehicleTemperatureID]
+      ,[VehicleRegistration]
+      ,[ChillerSensorNumber]
+      ,[RecordedWhen]
+      ,[Temperature]
+      ,[FullSensorData]
+  FROM [WideWorldImporters].[Website].[VehicleTemperatures]
