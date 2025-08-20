@@ -1,0 +1,10 @@
+{
+  "profiles": [
+    {
+      "profileName": "localhost-WWI",
+      "server": "localhost",
+      "database": "WideWorldImporters",
+      "authenticationType": "Integrated"
+    }
+  ]
+}
