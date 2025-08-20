@@ -1,0 +1,54 @@
+name: Verify Markdown Links
+
+on:
+  workflow_dispatch:
+
+jobs:
+  linkspector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Linkspector
+        run: npm install -g @umbrelladocs/linkspector
+
+      - name: Create Linkspector config
+        run: |
+          cat <<'EOF' > .linkspector.yml
+          files:
+            - getting-started-sql-server-links.md
+          useGitIgnore: true
+          EOF
+          cat .linkspector.yml
+
+      - name: Run Linkspector
+        id: linkspector
+        run: |
+          set +e
+          linkspector check -j > linkspector-output.json
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+          set -e
+        continue-on-error: true
+
+      - name: Send issues to Deepseek
+        if: steps.linkspector.outputs.exit_code != '0'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          issues=$(jq -r '.diagnostics[]? | "\(.location.path): \(.message)"' linkspector-output.json)
+          if [ -z "$issues" ]; then
+            echo "No diagnostics to report."
+            exit 1
+          fi
+          echo "Broken links found:"
+          echo "$issues"
+          curl -s https://api.deepseek.com/v1/chat/completions \
+            -H "Authorization: Bearer ${DEEPSEEK_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg prompt "Please suggest corrections for the following broken links:\n$issues" '{model:"deepseek-chat",messages:[{role:"user",content:$prompt}]}')" \
+            || echo "Deepseek API request failed"
+          exit 1
