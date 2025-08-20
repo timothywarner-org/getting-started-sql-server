@@ -18,28 +18,6 @@ Invoke-Sqlcmd -ServerInstance 'SQL1' -Database 'WideWorldImporters' -Query "SELE
 
 # Trust the server certificate
 
-# Good, clean query (PowerShell here-string)
-$query = @"
-SELECT TOP (5) CustomerID, CustomerName
-FROM Sales.Customers
-ORDER BY CustomerID;
-"@
-
-# Force TCP, specify port (change 1433 if yours differs)
-Invoke-Sqlcmd `
-  -ConnectionString "Server=tcp:sql1,1433;Database=WideWorldImporters;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=30;" `
-  -Query $query
-
-
-
-
-
-
-
-
-
-
-
 $query = @"
 SELECT TOP (5) CustomerID, CustomerName
 FROM Sales.Customers
